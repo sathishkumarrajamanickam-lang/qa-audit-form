@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QA Audit Form — Freshworks Product Support</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --navy: #1F2D3D; --blue: #2C5282; --blue-lt: #EBF4FF; --blue-mid: #4A90D9;
+    --teal: #1A7A5E; --teal-lt: #E6F7F2;
+    --purple: #6B3A8F; --purple-lt: #F3EEF9;
+    --green: #276749; --green-lt: #E6F4EA;
+    --red: #C53030; --red-lt: #FFF5F5;
+    --gray1: #F7FAFF; --gray2: #EDF2F7;
+    --text: #1A202C; --text2: #4A5568; --text3: #718096;
+    --border: #CBD5E0; --radius: 10px; --radius-sm: 6px;
+  }
+  body { font-family: Arial, sans-serif; font-size: 14px; color: var(--text); background: #F0F4F8; min-height: 100vh; }
+  .topbar { background: var(--navy); color: #fff; padding: 14px 28px; display: flex; align-items: center; justify-content: space-between; }
+  .topbar-title { font-size: 16px; font-weight: 700; }
+  .topbar-sub { font-size: 12px; opacity: .65; margin-top: 2px; }
+  .tab-bar { background: #fff; border-bottom: 1px solid var(--border); display: flex; padding: 0 28px; }
+  .tab-btn { padding: 12px 20px; font-size: 13px; font-weight: 500; border: none; background: none; cursor: pointer; color: var(--text3); border-bottom: 2px solid transparent; margin-bottom: -1px; }
+  .tab-btn.active { color: var(--blue); border-bottom-color: var(--blue); }
+  .tab-btn:hover:not(.active) { color: var(--text); }
+  .main { max-width: 900px; margin: 28px auto; padding: 0 20px; }
+  .card { background: #fff; border: 1px solid var(--border); border-radius: var(--radius); padding: 22px 24px; margin-bottom: 18px; }
+  .sec-label { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--text3); margin-bottom: 16px; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .field { display: flex; flex-direction: column; gap: 5px; }
+  label { font-size: 13px; font-weight: 600; color: var(--text2); }
+  label .req { color: var(--red); }
+  input[type=text], input[type=date], select, textarea {
+    font-size: 13px; padding: 8px 11px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+    background: var(--gray1); color: var(--text); outline: none; width: 100%; font-family: Arial, sans-serif;
+  }
+  input:focus, select:focus, textarea:focus { border-color: var(--blue-mid); box-shadow: 0 0 0 3px rgba(44,82,130,.12); }
+  textarea { resize: vertical; min-height: 64px; line-height: 1.5; }
+  .src-tabs { display: flex; gap: 8px; margin-top: 8px; }
+  .src-btn { padding: 8px 18px; border: 1.5px solid var(--border); border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; background: #fff; color: var(--text3); transition: all .15s; }
+  .src-btn:hover { border-color: var(--blue); color: var(--blue); }
+  .src-btn.active-ticket { background: var(--blue); color: #fff; border-color: var(--blue); }
+  .src-btn.active-chat   { background: var(--teal); color: #fff; border-color: var(--teal); }
+  .src-btn.active-call   { background: var(--purple); color: #fff; border-color: var(--purple); }
+  .param-table { width: 100%; border-collapse: collapse; }
+  .param-table thead th { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text3); padding: 8px 10px; border-bottom: 2px solid var(--border); text-align: left; }
+  .param-table thead th.c { text-align: center; }
+  .param-table tbody tr { border-bottom: 1px solid #F0F4F8; }
+  .param-table tbody tr:last-child { border-bottom: none; }
+  .param-table tbody tr:hover { background: var(--gray1); }
+  .param-table tbody td { padding: 10px; vertical-align: middle; }
+  .param-name { font-size: 13px; font-weight: 600; color: var(--text); line-height: 1.4; }
+  .param-desc { font-size: 11px; color: var(--text3); margin-top: 3px; line-height: 1.4; }
+  .fatal-badge { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 10px; background: var(--red-lt); color: var(--red); margin-left: 7px; vertical-align: middle; white-space: nowrap; }
+  .wt-cell { text-align: center; font-size: 13px; font-weight: 700; color: var(--text2); }
+  .score-cell { text-align: center; }
+  .score-sel { font-size: 12px; padding: 6px 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: #fff; color: var(--text); cursor: pointer; width: 130px; }
+  .score-board { background: linear-gradient(135deg, #1F2D3D 0%, #2C5282 100%); border-radius: var(--radius); padding: 20px 24px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+  .score-big { font-size: 42px; font-weight: 700; color: #fff; line-height: 1; }
+  .score-lbl { font-size: 12px; color: rgba(255,255,255,.6); margin-bottom: 6px; }
+  .prog { height: 6px; background: rgba(255,255,255,.2); border-radius: 3px; margin-top: 10px; width: 200px; }
+  .prog-fill { height: 6px; border-radius: 3px; transition: width .4s, background .4s; }
+  .result-pill { font-size: 13px; font-weight: 700; padding: 6px 16px; border-radius: 20px; }
+  .pill-pass    { background: #C6F6D5; color: #22543D; }
+  .pill-improve { background: #FEFCBF; color: #744210; }
+  .pill-fail    { background: #FED7D7; color: #9B2C2C; }
+  .fatal-warn   { font-size: 12px; color: #FEB2B2; margin-top: 8px; }
+  .btn-row { display: flex; gap: 10px; justify-content: flex-end; }
+  .btn { font-size: 13px; font-weight: 600; padding: 9px 20px; border-radius: var(--radius-sm); border: 1.5px solid var(--border); background: #fff; color: var(--text2); cursor: pointer; transition: all .15s; }
+  .btn:hover { background: var(--gray2); }
+  .btn-submit { background: var(--green); color: #fff; border-color: var(--green); }
+  .btn-submit:hover { background: #1E4E38; }
+  .btn-danger { color: var(--red); border-color: #FEB2B2; }
+  .btn-danger:hover { background: var(--red-lt); }
+  .hidden { display: none !important; }
+  .toast { position: fixed; bottom: 28px; right: 28px; color: #fff; padding: 12px 20px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; box-shadow: 0 4px 12px rgba(0,0,0,.15); opacity: 0; transition: opacity .3s; z-index: 999; }
+  .toast.show { opacity: 1; }
+  .toast-success { background: var(--green); }
+  .toast-error   { background: var(--red); }
+
+  /* Setup banner */
+  .setup-banner { background: #FFFBEB; border: 1.5px solid #F6AD55; border-radius: var(--radius); padding: 16px 20px; margin-bottom: 18px; display: flex; align-items: flex-start; gap: 14px; }
+  .setup-banner-icon { font-size: 22px; margin-top: 1px; }
+  .setup-banner h3 { font-size: 13px; font-weight: 700; color: #744210; margin-bottom: 4px; }
+  .setup-banner p { font-size: 12px; color: #7B6002; line-height: 1.6; }
+  .setup-banner a { color: var(--blue); }
+  .setup-input-row { display: flex; gap: 8px; margin-top: 10px; }
+  .setup-input-row input { font-size: 12px; padding: 7px 10px; border: 1px solid #F6AD55; border-radius: var(--radius-sm); background: #fff; color: var(--text); flex: 1; outline: none; }
+  .setup-input-row input:focus { border-color: var(--blue-mid); }
+  .btn-setup { font-size: 12px; font-weight: 700; padding: 7px 14px; border-radius: var(--radius-sm); border: none; background: #744210; color: #fff; cursor: pointer; white-space: nowrap; }
+  .btn-setup:hover { background: #5A3209; }
+  .connected-pill { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; padding: 5px 12px; border-radius: 20px; background: var(--green-lt); color: var(--green); border: 1px solid #9AE6B4; }
+
+  /* Spinner */
+  .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,.4); border-top-color: #fff; border-radius: 50%; animation: spin .7s linear infinite; vertical-align: middle; margin-right: 6px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* History */
+  .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 18px; }
+  .stat-card { background: #fff; border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 18px; }
+  .stat-lbl { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text3); margin-bottom: 8px; }
+  .stat-num { font-size: 26px; font-weight: 700; color: var(--text); }
+  .stat-sub { font-size: 11px; color: var(--text3); margin-top: 3px; }
+  .hist-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .hist-table th { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text3); padding: 8px 10px; border-bottom: 2px solid var(--border); text-align: left; background: var(--gray1); }
+  .hist-table td { padding: 10px; border-bottom: 1px solid #F0F4F8; vertical-align: middle; }
+  .hist-table tr:last-child td { border-bottom: none; }
+  .hist-table tr:hover td { background: var(--gray1); }
+  .src-badge { font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 12px; }
+  .src-ticket { background: var(--blue-lt); color: var(--blue); }
+  .src-chat   { background: var(--teal-lt); color: var(--teal); }
+  .src-call   { background: var(--purple-lt); color: var(--purple); }
+  .empty-state { text-align: center; padding: 48px; color: var(--text3); }
+  .empty-icon { font-size: 36px; margin-bottom: 10px; }
+  .sheet-link { font-size: 12px; color: var(--blue); text-decoration: none; }
+  .sheet-link:hover { text-decoration: underline; }
+
+  #admin-lock-btn:hover { color: var(--text) !important; }
+  @media (max-width: 640px) {
+    .grid2 { grid-template-columns: 1fr; }
+    .stats-row { grid-template-columns: 1fr 1fr; }
+    .main { padding: 0 12px; }
+    .score-big { font-size: 32px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div>
+    <div class="topbar-title">QA Audit Form</div>
+    <div class="topbar-sub">Freshworks &middot; Product Support Team &middot; Quality Evaluation</div>
+  </div>
+  <div id="connection-status" style="font-size:12px;opacity:.6">Not connected to Google Sheets</div>
+</div>
+
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="showTab('form',this)">&#9998; New Audit</button>
+  <button class="tab-btn" onclick="showTab('history',this)">&#128203; Recent Audits <span id="hist-cnt" style="font-size:11px;color:var(--text3)"></span></button>
+  <button class="tab-btn hidden" id="setup-tab-btn" onclick="showTab('setup',this)">&#9881; Setup</button>
+  <button class="tab-btn" id="admin-lock-btn" onclick="toggleAdminLock(this)" title="Admin access" style="margin-left:auto;font-size:18px;padding:8px 14px;color:var(--text3);border:none;background:none;cursor:pointer;line-height:1">&#128274;</button>
+</div>
+
+<!-- ═══ FORM TAB ═══ -->
+<div id="tab-form" class="main">
+
+  <div id="no-script-banner" class="setup-banner">
+    <div class="setup-banner-icon">&#9888;</div>
+    <div>
+      <h3>Google Sheets not connected</h3>
+      <p>Audits will <strong>not be saved</strong> until you connect a Google Sheet. Go to the <strong>Setup</strong> tab and paste your Apps Script URL to get started.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="sec-label">Audit Details</div>
+    <div class="grid2" style="margin-bottom:16px">
+      <div class="field">
+        <label>Auditor Name <span class="req">*</span></label>
+        <select id="f-auditor" onchange="updateAgentList()">
+          <option value="">Select auditor</option>
+          <option>Arun Balaji</option>
+          <option>Bibin Saji</option>
+          <option>Nivedha</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Audit Date</label>
+        <input type="date" id="f-date">
+      </div>
+      <div class="field">
+        <label>Agent Name <span class="req">*</span></label>
+        <select id="f-agent"><option value="">Select auditor first</option></select>
+      </div>
+      <div class="field">
+        <label>Reference ID</label>
+        <input type="text" id="f-ref" placeholder="Ticket / Chat / Call ID">
+      </div>
+    </div>
+    <div class="field">
+      <label>Source <span class="req">*</span></label>
+      <div class="src-tabs">
+        <button class="src-btn" onclick="selectSource('Ticket',this)">&#127915; Ticket</button>
+        <button class="src-btn" onclick="selectSource('Chat',this)">&#128172; Chat</button>
+        <button class="src-btn" onclick="selectSource('Call',this)">&#128222; Call</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="score-board-wrap" class="hidden">
+    <div class="score-board">
+      <div>
+        <div class="score-lbl">Quality Score</div>
+        <div class="score-big" id="score-big">—</div>
+        <div class="prog"><div class="prog-fill" id="prog-fill" style="width:0%;background:#68D391"></div></div>
+      </div>
+      <div style="text-align:right">
+        <span class="result-pill pill-fail" id="result-pill">—</span>
+        <div class="fatal-warn hidden" id="fatal-warn">&#9888; Fatal parameter failed — Auto Fail</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="params-card" class="card hidden">
+    <div class="sec-label" id="params-title">Parameters</div>
+    <table class="param-table">
+      <thead>
+        <tr>
+          <th style="width:44%">Parameter</th>
+          <th style="width:32%">Description</th>
+          <th class="c" style="width:8%">Wt%</th>
+          <th class="c" style="width:16%">Score</th>
+        </tr>
+      </thead>
+      <tbody id="params-body"></tbody>
+    </table>
+  </div>
+
+  <div id="remarks-card" class="card hidden">
+    <div class="sec-label">Remarks &amp; Feedback</div>
+    <div class="field" style="margin-bottom:14px"><label>Strengths Observed</label><textarea id="f-strength" placeholder="What did the agent do well?"></textarea></div>
+    <div class="field" style="margin-bottom:14px"><label>Areas for Improvement</label><textarea id="f-improve" placeholder="Specific gaps or coaching points"></textarea></div>
+    <div class="field"><label>Overall Feedback to Agent</label><textarea id="f-feedback" placeholder="Summary feedback for the agent"></textarea></div>
+  </div>
+
+  <div id="action-row" class="btn-row hidden" style="margin-bottom:8px">
+    <button class="btn" onclick="resetForm()">&#8635; Reset</button>
+  </div>
+  <div id="submit-row" class="btn-row hidden" style="margin-bottom:32px">
+    <button class="btn btn-submit" id="submit-btn" onclick="submitAudit()">&#10003; Submit Audit</button>
+  </div>
+</div>
+
+<!-- ═══ HISTORY TAB ═══ -->
+<div id="tab-history" class="main hidden">
+  <div class="stats-row">
+    <div class="stat-card"><div class="stat-lbl">Total Audits</div><div class="stat-num" id="stat-total">—</div><div class="stat-sub">this session</div></div>
+    <div class="stat-card"><div class="stat-lbl">Pass Rate</div><div class="stat-num" id="stat-pass">—</div><div class="stat-sub">85% threshold</div></div>
+    <div class="stat-card"><div class="stat-lbl">Avg Score</div><div class="stat-num" id="stat-avg">—</div><div class="stat-sub">across audits</div></div>
+    <div class="stat-card"><div class="stat-lbl">Auto Fails</div><div class="stat-num" id="stat-fail" style="color:var(--red)">—</div><div class="stat-sub">fatal triggers</div></div>
+  </div>
+  <div class="card" style="padding:18px 24px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div class="sec-label" style="margin:0">Audits submitted this session</div>
+      <a id="open-sheet-link" href="#" target="_blank" class="sheet-link hidden">&#128196; Open Google Sheet &#8599;</a>
+    </div>
+    <div id="history-wrap">
+      <div class="empty-state"><div class="empty-icon">&#128203;</div><div>No audits submitted in this session yet</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SETUP TAB ═══ -->
+<div id="tab-setup" class="main hidden">
+  <div class="card">
+    <div class="sec-label">Google Sheets Connection</div>
+
+    <div id="setup-connected" class="hidden" style="margin-bottom:20px">
+      <span class="connected-pill">&#10003; Connected to Google Sheets</span>
+      <div style="margin-top:10px;font-size:13px;color:var(--text2)">Script URL: <span id="saved-url-display" style="color:var(--text3);font-size:12px;word-break:break-all"></span></div>
+      <button class="btn btn-danger" style="margin-top:12px;font-size:12px;padding:6px 14px" onclick="disconnectSheet()">&#10005; Disconnect</button>
+    </div>
+
+    <div id="setup-form">
+      <p style="font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:20px">
+        Follow these steps once. All 3 leads share the same HTML file — audits from all of them go into one Google Sheet automatically.
+      </p>
+
+      <div style="counter-reset:steps">
+        <div class="setup-step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <strong>Create a Google Sheet</strong><br>
+            Go to <a href="https://sheets.new" target="_blank">sheets.new</a> and create a new sheet. Name it <em>QA Audits</em>. Share it with all 3 leads (Editor access).
+          </div>
+        </div>
+        <div class="setup-step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <strong>Open Apps Script</strong><br>
+            In your Google Sheet → click <strong>Extensions</strong> → <strong>Apps Script</strong>. Delete any existing code.
+          </div>
+        </div>
+        <div class="setup-step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <strong>Paste this code</strong><br>
+            Copy the entire block below and paste it into the Apps Script editor:
+            <div style="position:relative;margin-top:10px">
+              <pre id="gas-code" style="background:#1E2A3A;color:#A8D8A8;font-size:11px;padding:16px;border-radius:6px;overflow-x:auto;line-height:1.6;white-space:pre-wrap">const SHEET_NAME = 'Audits';
+
+function doGet(e) {
+  try {
+    var p        = e.parameter;
+    var callback = p.cb || 'qaGASCallback';
+
+    // Health-check ping (no auditor field)
+    if (!p.auditor) {
+      return ContentService
+        .createTextOutput(callback + '({"status":"ready"})')
+        .setMimeType(ContentService.MimeType.JAVASCRIPT);
+    }
+
+    var ss    = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = ss.getSheetByName(SHEET_NAME);
+
+    if (!sheet) {
+      sheet = ss.insertSheet(SHEET_NAME);
+      var headers = [
+        'Timestamp','Date','Auditor','Agent','Source','Reference ID',
+        'Score','Result',
+        'P1','P2','P3','P4','P5','P6','P7','P8','P9',
+        'P1 Name','P2 Name','P3 Name','P4 Name','P5 Name',
+        'P6 Name','P7 Name','P8 Name','P9 Name',
+        'Strengths','Improvement Areas','Feedback'
+      ];
+      sheet.appendRow(headers);
+      sheet.getRange(1, 1, 1, headers.length)
+           .setFontWeight('bold')
+           .setBackground('#1F2D3D')
+           .setFontColor('#FFFFFF');
+      sheet.setFrozenRows(1);
+    }
+
+    sheet.appendRow([
+      new Date().toISOString(),
+      p.date    ||'', p.auditor||'', p.agent  ||'',
+      p.source  ||'', p.ref    ||'',
+      p.score   ||'', p.result ||'',
+      p.p0||'', p.p1||'', p.p2||'',
+      p.p3||'', p.p4||'', p.p5||'',
+      p.p6||'', p.p7||'', p.p8||'',
+      p.pn0||'', p.pn1||'', p.pn2||'',
+      p.pn3||'', p.pn4||'', p.pn5||'',
+      p.pn6||'', p.pn7||'', p.pn8||'',
+      p.strength||'', p.improve||'', p.feedback||''
+    ]);
+
+    var okJson = JSON.stringify({status:'ok'});
+    return ContentService
+      .createTextOutput(callback + '(' + okJson + ')')
+      .setMimeType(ContentService.MimeType.JAVASCRIPT);
+
+  } catch(err) {
+    var cb2 = (e.parameter.cb || 'qaGASCallback');
+    return ContentService
+      .createTextOutput(cb2 + '({"status":"error","message":' + JSON.stringify(err.message) + '})')
+      .setMimeType(ContentService.MimeType.JAVASCRIPT);
+  }
+}</pre>
+              <button onclick="copyCode()" style="position:absolute;top:8px;right:8px;font-size:11px;padding:4px 10px;border-radius:4px;border:1px solid #4A6080;background:#2C3E50;color:#ccc;cursor:pointer">Copy</button>
+            </div>
+          </div>
+        </div>
+        <div class="setup-step">
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <strong>Deploy as Web App</strong><br>
+            Click <strong>Deploy</strong> → <strong>New deployment</strong> → choose type <strong>Web app</strong>.<br>
+            Set <em>Execute as</em>: <strong>Me</strong> &nbsp;|&nbsp; <em>Who has access</em>: <strong>Anyone</strong>.<br>
+            Click <strong>Deploy</strong> → copy the <strong>Web app URL</strong>.
+          </div>
+        </div>
+        <div class="setup-step">
+          <div class="step-num">5</div>
+          <div class="step-body">
+            <strong>Paste the URL below and save</strong>
+            <div class="setup-input-row">
+              <input type="text" id="script-url-input" placeholder="https://script.google.com/macros/s/...../exec">
+              <button class="btn-setup" onclick="saveScriptUrl()">&#10003; Save &amp; Connect</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<style>
+  .setup-step { display:flex; gap:14px; margin-bottom:20px; }
+  .step-num { min-width:26px; height:26px; border-radius:50%; background:var(--blue); color:#fff; font-size:12px; font-weight:700; display:flex; align-items:center; justify-content:center; margin-top:1px; flex-shrink:0; }
+  .step-body { font-size:13px; color:var(--text2); line-height:1.7; }
+  .step-body strong { color:var(--text); }
+  .step-body a { color:var(--blue); }
+</style>
+
+<script>
+const PARAMS = {
+  Ticket:[
+    {l:"Ticket created with correct subject and description",d:"Subject reflects issue; Description is clear and complete",w:10,f:false},
+    {l:"Requester details and priority",d:"Name, email, org, Priority correctly mapped",w:15,f:true},
+    {l:"First response within 1 hour with relevant information/questions",d:"Not a generic reply; relevant questions asked to diagnose issue",w:20,f:false},
+    {l:"Ticket documentation",d:"Captured all required information, category, sub-category, MOM",w:10,f:false},
+    {l:"Ticket follow-up",d:"Customer follow-ups (every 48 hrs) and internal updates done within SLA",w:10,f:false},
+    {l:"Professional communication",d:"Tone, language, grammar, and empathy maintained throughout",w:15,f:false},
+    {l:"L2 raised with all information filled in template",d:"Escalation template fully completed before raising to L2",w:10,f:false},
+    {l:"Ticket type validation",d:"Correct ticket type",w:5,f:false},
+    {l:"Ticket resolved appropriately",d:"Resolution verified, correct resolution notes, customer confirmation",w:15,f:true},
+  ],
+  Chat:[
+    {l:"Reviewed the bot conversation",d:"Did not ask 'How may I help you' — reviewed prior bot transcript first",w:20,f:false},
+    {l:"Professional communication",d:"Tone, language, grammar maintained throughout the chat",w:15,f:true},
+    {l:"Proper probing",d:"Relevant questions asked to understand and diagnose the issue",w:15,f:false},
+    {l:"Delayed response",d:"Not leaving chat unattended more than 5 mins; apologise if exceeds",w:10,f:false},
+    {l:"Proper troubleshooting / Relevant information shared",d:"Accurate steps shared; no irrelevant or misleading information",w:20,f:false},
+    {l:"Ticket conversion",d:"Chat converted to ticket when applicable and done correctly",w:10,f:false},
+    {l:"Force closure",d:"No premature or forced closure of chat without resolution",w:10,f:true},
+  ],
+  Call:[
+    {l:"Call opening — greeting and verification",d:"Agent greeted professionally and verified caller identity",w:10,f:false},
+    {l:"Active listening and probing",d:"Did not interrupt; asked relevant questions to diagnose the issue",w:15,f:false},
+    {l:"Hold and transfer etiquette",d:"Customer informed before hold; hold within limits; warm transfer done correctly",w:10,f:false},
+    {l:"Sympathy / Empathy when required",d:"Acknowledged customer emotion; tone adapted throughout",w:10,f:false},
+    {l:"Correct troubleshooting / Relevant information shared",d:"Accurate resolution steps; no incorrect information provided",w:20,f:false},
+    {l:"Ticket logged with complete information",d:"Call captured in ticket with correct details, category, and notes",w:15,f:true},
+    {l:"Professional communication throughout",d:"Tone, language, pace, and grammar appropriate for the entire call",w:10,f:false},
+    {l:"Call closure — summarise and confirm",d:"Agent summarised resolution, confirmed satisfaction, closed properly",w:10,f:false},
+  ]
+};
+
+let currentSource = '';
+let sessionAudits = [];
+let SCRIPT_URL = localStorage.getItem('qa_script_url') || '';
+
+// ── Init ──────────────────────────────────────────────────────
+document.getElementById('f-date').valueAsDate = new Date();
+updateAgentList();
+updateConnectionUI();
+
+function updateConnectionUI() {
+  const banner = document.getElementById('no-script-banner');
+  const connStatus = document.getElementById('connection-status');
+  const setupConnected = document.getElementById('setup-connected');
+  const setupForm = document.getElementById('setup-form');
+  const savedDisplay = document.getElementById('saved-url-display');
+  if (SCRIPT_URL) {
+    banner.classList.add('hidden');
+    connStatus.textContent = '✓ Connected to Google Sheets';
+    connStatus.style.opacity = '1';
+    connStatus.style.color = '#9AE6B4';
+    setupConnected.classList.remove('hidden');
+    setupForm.classList.add('hidden');
+    savedDisplay.textContent = SCRIPT_URL;
+    const sheetLink = document.getElementById('open-sheet-link');
+    sheetLink.classList.remove('hidden');
+  } else {
+    banner.classList.remove('hidden');
+    connStatus.textContent = 'Not connected to Google Sheets';
+    connStatus.style.opacity = '.6';
+    connStatus.style.color = '';
+    setupConnected.classList.add('hidden');
+    setupForm.classList.remove('hidden');
+    document.getElementById('open-sheet-link').classList.add('hidden');
+  }
+}
+
+function saveScriptUrl() {
+  const val = document.getElementById('script-url-input').value.trim();
+  if (!val || !val.startsWith('https://script.google.com')) {
+    alert('Please paste a valid Apps Script URL (starts with https://script.google.com)');
+    return;
+  }
+  SCRIPT_URL = val;
+  localStorage.setItem('qa_script_url', SCRIPT_URL);
+  updateConnectionUI();
+  toast('✓ Connected! You can now submit audits.', 'success');
+}
+
+function disconnectSheet() {
+  if (!confirm('Remove the Google Sheets connection?')) return;
+  SCRIPT_URL = '';
+  localStorage.removeItem('qa_script_url');
+  updateConnectionUI();
+  toast('Disconnected.', 'error');
+}
+
+function copyCode() {
+  const code = document.getElementById('gas-code').textContent;
+  navigator.clipboard.writeText(code).then(() => toast('Code copied!', 'success'));
+}
+
+// ── Tabs ──────────────────────────────────────────────────────
+function showTab(tab, el) {
+  ['form','history','setup'].forEach(t => {
+    document.getElementById('tab-'+t).classList.toggle('hidden', t !== tab);
+  });
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  if (tab === 'history') renderHistory();
+}
+
+// ── Source & Params ───────────────────────────────────────────
+function selectSource(src, btn) {
+  currentSource = src;
+  document.querySelectorAll('.src-btn').forEach(b => b.className = 'src-btn');
+  btn.className = 'src-btn active-' + src.toLowerCase();
+  loadParams(src);
+  ['params-card','remarks-card','action-row','score-board-wrap','submit-row'].forEach(id =>
+    document.getElementById(id).classList.remove('hidden'));
+  document.getElementById('params-title').textContent = src + ' Quality Parameters';
+  calcScore();
+}
+
+function loadParams(src) {
+  const tbody = document.getElementById('params-body');
+  tbody.innerHTML = '';
+  PARAMS[src].forEach((p, i) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><div class="param-name">${p.l}${p.f ? '<span class="fatal-badge">FATAL</span>' : ''}</div></td>
+      <td><div class="param-desc">${p.d}</div></td>
+      <td class="wt-cell">${p.w}%</td>
+      <td class="score-cell">
+        <select class="score-sel" data-i="${i}" onchange="calcScore()">
+          <option value="">— Select —</option>
+          <option value="1">Yes — Full marks</option>
+          <option value="0.5">Partial — 50%</option>
+          <option value="0">No — 0%</option>
+          <option value="na">N/A</option>
+        </select>
+      </td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+// ── Scoring ───────────────────────────────────────────────────
+function calcScore() {
+  const src = currentSource;
+  if (!src) return;
+  const params = PARAMS[src];
+  const sels = document.querySelectorAll('#params-body .score-sel');
+  let earned = 0, possible = 0, fatalFail = false;
+  sels.forEach((s, i) => {
+    const v = s.value;
+    if (v === '' || v === 'na') return;
+    possible += params[i].w;
+    earned += params[i].w * parseFloat(v);
+    if (params[i].f && v === '0') fatalFail = true;
+  });
+  const pct = possible > 0 ? Math.round(earned / possible * 100) : 0;
+  const sb = document.getElementById('score-big');
+  const pf = document.getElementById('prog-fill');
+  const pill = document.getElementById('result-pill');
+  const fw = document.getElementById('fatal-warn');
+  if (fatalFail) {
+    sb.textContent = 'FAIL'; pf.style.width = '100%'; pf.style.background = '#FC8181';
+    pill.className = 'result-pill pill-fail'; pill.textContent = 'Auto Fail';
+    fw.classList.remove('hidden');
+  } else {
+    fw.classList.add('hidden');
+    sb.textContent = possible > 0 ? pct + '%' : '—';
+    pf.style.width = pct + '%';
+    if (pct >= 85) { pf.style.background = '#68D391'; pill.className = 'result-pill pill-pass'; pill.textContent = 'Pass'; }
+    else if (pct >= 70) { pf.style.background = '#F6E05E'; pill.className = 'result-pill pill-improve'; pill.textContent = 'Needs Improvement'; }
+    else { pf.style.background = '#FC8181'; pill.className = 'result-pill pill-fail'; pill.textContent = 'Fail'; }
+  }
+}
+
+function getScores() {
+  const src = currentSource;
+  const params = PARAMS[src];
+  const sels = document.querySelectorAll('#params-body .score-sel');
+  const lbl = {'1':'Yes – Full','0.5':'Partial – 50%','0':'No – 0%','na':'N/A','':'—'};
+  let earned = 0, possible = 0, fatalFail = false;
+  const scores = [];
+  sels.forEach((s, i) => {
+    const v = s.value;
+    scores.push({ param: params[i].l, weight: params[i].w, fatal: params[i].f, scoreLabel: lbl[v] || '—', value: v });
+    if (v !== '' && v !== 'na') { possible += params[i].w; earned += params[i].w * parseFloat(v); }
+    if (params[i].f && v === '0') fatalFail = true;
+  });
+  const pct = possible > 0 ? Math.round(earned / possible * 100) : 0;
+  const result = fatalFail ? 'Auto Fail' : pct >= 85 ? 'Pass' : pct >= 70 ? 'Needs Improvement' : 'Fail';
+  return { scores, pct, result, fatalFail, scoreDisplay: fatalFail ? 'FAIL' : (possible > 0 ? pct + '%' : '—') };
+}
+
+// ── Submit ────────────────────────────────────────────────────
+function submitAudit() {
+  const auditor = document.getElementById('f-auditor').value.trim();
+  const agent   = document.getElementById('f-agent').value;
+  if (!currentSource)     { alert('Please select a source (Ticket, Chat, or Call).'); return; }
+  if (!auditor || !agent) { alert('Please select an Auditor and an Agent.'); return; }
+  if (!SCRIPT_URL)        { alert('Google Sheets not connected. Go to the Setup tab to connect first.'); return; }
+
+  const { scores, pct, result, fatalFail, scoreDisplay } = getScores();
+
+  const btn = document.getElementById('submit-btn');
+  btn.innerHTML = '<span class="spinner"></span>Saving…';
+  btn.disabled  = true;
+
+  // Collect field values NOW before resetForm clears them
+  const date     = document.getElementById('f-date').value     || new Date().toISOString().split('T')[0];
+  const ref      = document.getElementById('f-ref').value      || '';
+  const strength = document.getElementById('f-strength').value || '';
+  const improve  = document.getElementById('f-improve').value  || '';
+  const feedback = document.getElementById('f-feedback').value || '';
+
+  const payload = {
+    date, auditor, agent,
+    source: currentSource, ref,
+    score: scoreDisplay, pct: fatalFail ? -1 : pct,
+    result, scores, strength, improve, feedback,
+  };
+
+  // Build URL params — keep remarks to 200 chars to stay under URL limit
+  const sc = scores || [];
+  const p  = new URLSearchParams({
+    cb:       'qaGASCallback',
+    date:     date,
+    auditor:  auditor,
+    agent:    agent,
+    source:   currentSource,
+    ref:      ref.slice(0, 100),
+    score:    scoreDisplay,
+    result:   result,
+    strength: strength.slice(0, 200),
+    improve:  improve.slice(0, 200),
+    feedback: feedback.slice(0, 200),
+  });
+  sc.forEach(function(item, i) {
+    p.set('p'  + i, item.scoreLabel || '');
+    p.set('pn' + i, (item.param     || '').slice(0, 60));
+  });
+
+  const url = SCRIPT_URL + '?' + p.toString();
+
+  // Remove any previous JSONP script
+  var old = document.getElementById('_gas_script');
+  if (old) old.remove();
+
+  var timer = setTimeout(function() {
+    delete window.qaGASCallback;
+    btn.innerHTML = '&#10003; Submit Audit';
+    btn.disabled  = false;
+    toast('Timed out. Check your Script URL in Setup.', 'error');
+  }, 20000);
+
+  window.qaGASCallback = function(resp) {
+    clearTimeout(timer);
+    delete window.qaGASCallback;
+    var old2 = document.getElementById('_gas_script');
+    if (old2) old2.remove();
+    btn.innerHTML = '&#10003; Submit Audit';
+    btn.disabled  = false;
+    if (resp && resp.status === 'ok') {
+      sessionAudits.unshift(payload);
+      document.getElementById('hist-cnt').textContent = '(' + sessionAudits.length + ')';
+      toast('✓ Saved — ' + agent + ' · ' + scoreDisplay + ' · ' + result, 'success');
+      resetForm();
+    } else {
+      toast('Error saving. Check Apps Script logs.', 'error');
+    }
+  };
+
+  var script = document.createElement('script');
+  script.id  = '_gas_script';
+  script.src = url;
+  script.onerror = function() {
+    clearTimeout(timer);
+    delete window.qaGASCallback;
+    btn.innerHTML = '&#10003; Submit Audit';
+    btn.disabled  = false;
+    toast('Failed to reach Google Sheets. Check your Script URL.', 'error');
+  };
+  document.body.appendChild(script);
+}
+
+
+
+
+// ── Reset ─────────────────────────────────────────────────────
+function resetForm() {
+  ['f-ref','f-strength','f-improve','f-feedback'].forEach(function(id) {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('f-agent').selectedIndex = 0;
+updateAgentList();
+  document.getElementById('f-date').valueAsDate = new Date();
+updateAgentList();
+  document.querySelectorAll('.src-btn').forEach(function(b) { b.className = 'src-btn'; });
+  currentSource = '';
+  document.getElementById('params-body').innerHTML = '';
+  ['params-card','remarks-card','action-row','score-board-wrap'].forEach(function(id) {
+    document.getElementById(id).classList.add('hidden');
+  });
+  document.getElementById('score-big').textContent = '—';
+  document.getElementById('prog-fill').style.width = '0%';
+  document.getElementById('result-pill').className = 'result-pill pill-fail';
+  document.getElementById('result-pill').textContent = '—';
+  document.getElementById('fatal-warn').classList.add('hidden');
+}
+
+
+// ── History (session only) ────────────────────────────────────
+function renderHistory() {
+  const wrap = document.getElementById('history-wrap');
+  const total = sessionAudits.length;
+  const passed = sessionAudits.filter(a => a.result === 'Pass').length;
+  const autoFail = sessionAudits.filter(a => a.result === 'Auto Fail').length;
+  const avgArr = sessionAudits.filter(a => a.pct >= 0);
+  const avg = avgArr.length ? Math.round(avgArr.reduce((s,a) => s + a.pct, 0) / avgArr.length) : null;
+  document.getElementById('stat-total').textContent = total || '0';
+  document.getElementById('stat-pass').textContent = total ? Math.round(passed/total*100) + '%' : '—';
+  document.getElementById('stat-avg').textContent = avg !== null ? avg + '%' : '—';
+  document.getElementById('stat-fail').textContent = autoFail;
+  if (!total) {
+    wrap.innerHTML = '<div class="empty-state"><div class="empty-icon">&#128203;</div><div>No audits submitted in this session yet</div></div>';
+    return;
+  }
+  let html = '<div style="overflow-x:auto"><table class="hist-table"><thead><tr><th>Date</th><th>Agent</th><th>Source</th><th>Ref ID</th><th>Score</th><th>Result</th><th>Auditor</th></tr></thead><tbody>';
+  sessionAudits.forEach(a => {
+    const srcCls = 'src-badge src-' + a.source.toLowerCase();
+    const pillCls = a.result === 'Pass' ? 'pill-pass' : a.result === 'Needs Improvement' ? 'pill-improve' : 'pill-fail';
+    html += `<tr>
+      <td>${a.date}</td>
+      <td style="font-weight:600">${a.agent}</td>
+      <td><span class="${srcCls}">${a.source}</span></td>
+      <td style="color:var(--text3)">${a.ref||'—'}</td>
+      <td style="font-weight:700">${a.score}</td>
+      <td><span class="result-pill ${pillCls}" style="font-size:11px">${a.result}</span></td>
+      <td style="color:var(--text3)">${a.auditor}</td>
+    </tr>`;
+  });
+  html += '</tbody></table></div>';
+  wrap.innerHTML = html;
+}
+
+
+// ── Agent map by lead ────────────────────────────────────────
+const AGENT_MAP = {
+  'Arun Balaji': [
+    'Jonah Gunams','Akhil Suresh','Fenn Philip','Hari Raghavendar',
+    'Narmadha','Dharani Tharan','Soumi Sarkar','Lakshmi Priya N',
+    'Anto Akash','Sujitha'
+  ],
+  'Bibin Saji': [
+    'Dominick','Gowtam Raju','Jawahar Neethimanickam','Ramya R',
+    'Pragadesh Madhu','Vinunithi G','Shanmugavel Sankar','Prathiba S',
+    'Janani','Gowsalya R'
+  ],
+  'Nivedha': [
+    'Kamlesh Merugu','Himanshu Singh','Sanjay N','Madhav R',
+    'Manikanta B','Yasshikaa J','Vrithy Umesh','Harish Jayaram Camala',
+    'Priyadharshini Karunakaran','Nazeer'
+  ]
+};
+
+function updateAgentList() {
+  var auditor  = document.getElementById('f-auditor').value;
+  var agentSel = document.getElementById('f-agent');
+  var prev     = agentSel.value;
+  agentSel.innerHTML = '';
+  if (!auditor) {
+    agentSel.innerHTML = '<option value="">Select auditor first</option>';
+    return;
+  }
+  var agents = AGENT_MAP[auditor] || [];
+  var placeholder = document.createElement('option');
+  placeholder.value = ''; placeholder.textContent = 'Select agent';
+  agentSel.appendChild(placeholder);
+  agents.forEach(function(a) {
+    var opt = document.createElement('option');
+    opt.value = a; opt.textContent = a;
+    if (a === prev) opt.selected = true;
+    agentSel.appendChild(opt);
+  });
+}
+
+// ── Toast ─────────────────────────────────────────────────────
+function toast(msg, type='success', dur=3200) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast toast-' + type + ' show';
+  setTimeout(() => t.classList.remove('show'), dur);
+}
+
+// ── Admin lock ────────────────────────────────────────────────
+const ADMIN_PASS = 'FW@Admin2024';
+let adminUnlocked = false;
+
+function toggleAdminLock(btn) {
+  if (adminUnlocked) {
+    adminUnlocked = false;
+    btn.innerHTML = '&#128274;';
+    btn.title = 'Admin access';
+    document.getElementById('setup-tab-btn').classList.add('hidden');
+    if (!document.getElementById('tab-setup').classList.contains('hidden')) {
+      showTab('form', document.querySelector('.tab-btn'));
+      document.querySelector('.tab-btn').classList.add('active');
+    }
+    toast('Admin mode disabled', 'success');
+  } else {
+    var entered = prompt('Enter admin password:');
+    if (entered === null) return;
+    if (entered === ADMIN_PASS) {
+      adminUnlocked = true;
+      btn.innerHTML = '&#128275;';
+      btn.title = 'Admin mode active — click to lock';
+      document.getElementById('setup-tab-btn').classList.remove('hidden');
+      toast('Admin mode enabled — Setup tab is now visible', 'success');
+    } else {
+      toast('Incorrect password', 'error');
+    }
+  }
+}
+</script>
+</body>
+</html>
